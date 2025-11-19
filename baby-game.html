@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Baby's Touch Garden</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
+            height: 100vh;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Floating Bubbles */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset -10px -10px 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .bubble.pop {
+            animation: popAnimation 0.4s ease-out forwards;
+        }
+
+        @keyframes popAnimation {
+            to {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Stars that appear on touch */
+        .star {
+            position: absolute;
+            font-size: 30px;
+            animation: twinkle 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes twinkle {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5) rotate(180deg);
+            }
+            100% {
+                transform: scale(0) rotate(360deg) translateY(-100px);
+                opacity: 0;
+            }
+        }
+
+        /* Floating Animals */
+        .animal {
+            position: absolute;
+            font-size: 60px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .animal:active {
+            transform: scale(1.3);
+        }
+
+        .animal.bounce {
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        /* Sun */
+        #sun {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 80px;
+            animation: rotate 10s linear infinite;
+            cursor: pointer;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        #sun:active {
+            animation-duration: 0.5s;
+        }
+
+        /* Score Display */
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: #FF6B6B;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Particle Effects */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: float 2s ease-out forwards;
+        }
+
+        @keyframes float {
+            to {
+                transform: translateY(-200px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .animal {
+                font-size: 50px;
+            }
+            #sun {
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="sun">☀️</div>
+        <div id="score">⭐ 0</div>
+    </div>
+
+    <audio id="popSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCuBzvLZiTYIG2m98OScTgwOUanm7blmFAU1kNHz0nouBSl+yO/ckEAKFFux6OygThANSKXh8b9pIAUuhM/y2Yo3CRxqvu/mnEoMDVCm5e+3YhYEPI7T8tF7LwUlgMvo2ZE/ChVhtOjtp1QRDkeg4vG/ZiEEMITP8tiJOAkabrvs551IDQxPqOPwtmMcBjiS1/LNeSsFJHfH7922RQwXXrXn76hVFApHoOLyvmwhBCyBzvLZiTYIG2m98OScTgwOUanm7blmFAU1kNHz0nouBSl+yO/ckEAKFFux5+2gUBEKR6Dh8b9oIAQuhM/y2Yo3CRxqvu/mnEoMDVCm5e+3YhYEPI7T8tF7LwUlgMvo2ZE/ChVhtOjtp1QRDkeg4vG/ZiEEMITO8tiIOQkabrrr551IDQxPqOPwtmMcBjiS1/LNeSsFJHfH7922RQwXXrXn76hVFApHoOLyvmwhBCyBzvLZiTYIG2m98OScTgwOUanm7blmFAU1kNHz0nosBSl+yO/ckEAKFFux5+2gUBEKR6Dh8b9oIAQuhM/y2Yo3CRxqvu/mnEoMDVCm5e+3YhYEPI7T8tF7LwUlgMvo2ZE/ChVhtOjtp1QRDkeg4vG/ZiEEMITO8tiIOQkabrrr551IDQxPqOPwtmMcBjiS1/LNeSsFJHfH7922RQwXXrXn76hVFApHoOLyvmwhBCyBzvLZiTYIG2m98OScTgwOUanm7blmFAU1kNHz0nosBSl+yO/ckEAKFFux5+2gUBEKR6Dh8b9oIAQuhM/y2Yo3CRxqvu/mnEoMDVCm5e+3YhYEPI7T8tF7LwUlgMvo2ZE/ChVhtOjtp1QRDkeg4vG/ZiEEMITO8tiIOQkabrrr551IDQxPqOPwtmMcBjiS1/LNeSsFJHfH7922RQwXXrXn76hVFApHoOLyvmwhBCyBzvLZiTYIG2m98OScTgwOUanm7blmFAU1kNHz0nosBSl+yO/ckEAKFFux5+2gUBEKR6Dh8b9oIAQuhM/y2Yo3CRxqvu/mnEoMDVCm5e+3YhYEPI7T8tF7LwUlgMvo2ZE/ChVhtOjtp1QRDkeg4vG/ZiEEMITO8tiIOQkabrro551JDQxPqOPwtmMcBjiS1/LNeSsFJHfH7922RQwXXrXn76hVFApHoOLyvmwhBCyBzvLZiTYIG2m98OScTgwOUanm7blmFAU1kNHz0nosBSl+yO/ckEAKFFux5+2gUBEKR6Dh8b9oIAQuhM/y2Yo3CRxqvu/mnEoMDVCm5e+3YhYEPI7T8tF7LwUlgMvo2ZE/ChVhtOjtp1QRDkeg4vG/ZiEEMITO8tiIOQkabrro551JDQxPqOPwtmMcBjiS1/LNeSsFJHfH7922RQwXXrXn76hVFApHoOLyvmwhBCyBzvLZiTYIG2m98OScTgwOUanm7blmFAU1kNHz0nosBSl+yO/ckEAKFFux5+2gUBEKR6Dh8b9oIAQuhM/y2Yo3CQ==" type="audio/wav">
+    </audio>
+
+    <script>
+        // Game State
+        let score = 0;
+        const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FFD700', '#FF69B4', '#87CEEB'];
+        const animals = ['🐶', '🐱', '🐸', '🐷', '🐵', '🦁', '🐨', '🐰', '🦊', '🐻', '🐼', '🦋'];
+        const shapes = ['⭐', '❤️', '🌟', '💫', '✨', '🌈', '🎈', '🌸'];
+
+        // Sound effect
+        function playSound() {
+            const audio = document.getElementById('popSound');
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log('Audio play failed:', e));
+        }
+
+        // Create simple tone sound
+        function createTone(frequency = 800, duration = 200) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+
+        // Create Bubble
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            const size = Math.random() * 60 + 40;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.backgroundColor = color;
+            bubble.style.left = Math.random() * (window.innerWidth - size) + 'px';
+            bubble.style.top = Math.random() * (window.innerHeight - size) + 'px';
+            bubble.style.opacity = '0.7';
+            
+            bubble.addEventListener('click', function(e) {
+                e.stopPropagation();
+                popBubble(this);
+            });
+            
+            bubble.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                popBubble(this);
+            });
+            
+            document.getElementById('gameContainer').appendChild(bubble);
+            
+            // Auto remove after 5 seconds if not popped
+            setTimeout(() => {
+                if (bubble.parentNode) {
+                    bubble.remove();
+                }
+            }, 5000);
+        }
+
+        // Pop Bubble
+        function popBubble(bubble) {
+            if (!bubble.classList.contains('pop')) {
+                bubble.classList.add('pop');
+                createTone(600 + Math.random() * 400, 150);
+                updateScore(5);
+                createStarBurst(bubble.offsetLeft + bubble.offsetWidth/2, bubble.offsetTop + bubble.offsetHeight/2);
+                
+                setTimeout(() => {
+                    bubble.remove();
+                }, 400);
+            }
+        }
+
+        // Create Animal
+        function createAnimal() {
+            const animal = document.createElement('div');
+            animal.className = 'animal';
+            animal.textContent = animals[Math.floor(Math.random() * animals.length)];
+            
+            animal.style.left = Math.random() * (window.innerWidth - 60) + 'px';
+            animal.style.top = Math.random() * (window.innerHeight - 60) + 'px';
+            
+            animal.addEventListener('click', function(e) {
+                e.stopPropagation();
+                animalClick(this);
+            });
+            
+            animal.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                animalClick(this);
+            });
+            
+            document.getElementById('gameContainer').appendChild(animal);
+            
+            // Move animal slowly
+            let xSpeed = (Math.random() - 0.5) * 2;
+            let ySpeed = (Math.random() - 0.5) * 2;
+            
+            const moveAnimal = setInterval(() => {
+                let x = parseFloat(animal.style.left);
+                let y = parseFloat(animal.style.top);
+                
+                x += xSpeed;
+                y += ySpeed;
+                
+                if (x <= 0 || x >= window.innerWidth - 60) xSpeed *= -1;
+                if (y <= 0 || y >= window.innerHeight - 60) ySpeed *= -1;
+                
+                animal.style.left = x + 'px';
+                animal.style.top = y + 'px';
+            }, 50);
+            
+            // Remove after 8 seconds
+            setTimeout(() => {
+                clearInterval(moveAnimal);
+                if (animal.parentNode) {
+                    animal.remove();
+                }
+            }, 8000);
+        }
+
+        // Animal Click Handler
+        function animalClick(animal) {
+            animal.classList.add('bounce');
+            createTone(800, 100);
+            updateScore(10);
+            createParticles(animal.offsetLeft + 30, animal.offsetTop + 30);
+            
+            setTimeout(() => {
+                animal.classList.remove('bounce');
+            }, 600);
+        }
+
+        // Create Star Burst
+        function createStarBurst(x, y) {
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = '⭐';
+                star.style.left = x + 'px';
+                star.style.top = y + 'px';
+                
+                document.getElementById('gameContainer').appendChild(star);
+                
+                setTimeout(() => {
+                    star.remove();
+                }, 1000);
+            }
+        }
+
+        // Create Particles
+        function createParticles(x, y) {
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+                particle.style.left = (x + Math.random() * 40 - 20) + 'px';
+                particle.style.top = (y + Math.random() * 40 - 20) + 'px';
+                particle.style.fontSize = '20px';
+                
+                document.getElementById('gameContainer').appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 2000);
+            }
+        }
+
+        // Update Score
+        function updateScore(points) {
+            score += points;
+            document.getElementById('score').textContent = '⭐ ' + score;
+            
+            // Celebration at milestones
+            if (score % 50 === 0 && score > 0) {
+                celebrate();
+            }
+        }
+
+        // Celebration Effect
+        function celebrate() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const emoji = document.createElement('div');
+                    emoji.className = 'particle';
+                    emoji.textContent = ['🎉', '🎊', '🎈', '🌟'][Math.floor(Math.random() * 4)];
+                    emoji.style.left = Math.random() * window.innerWidth + 'px';
+                    emoji.style.top = window.innerHeight + 'px';
+                    emoji.style.fontSize = '40px';
+                    emoji.style.animation = 'float 3s ease-out forwards';
+                    
+                    document.getElementById('gameContainer').appendChild(emoji);
+                    
+                    setTimeout(() => {
+                        emoji.remove();
+                    }, 3000);
+                }, i * 100);
+            }
+        }
+
+        // Background Touch Handler
+        document.getElementById('gameContainer').addEventListener('click', function(e) {
+            if (e.target.id === 'gameContainer') {
+                createStarBurst(e.clientX, e.clientY);
+                createTone(400, 100);
+                updateScore(1);
+            }
+        });
+
+        document.getElementById('gameContainer').addEventListener('touchstart', function(e) {
+            if (e.target.id === 'gameContainer') {
+                e.preventDefault();
+                const touch = e.touches[0];
+                createStarBurst(touch.clientX, touch.clientY);
+                createTone(400, 100);
+                updateScore(1);
+            }
+        });
+
+        // Sun Click Handler
+        document.getElementById('sun').addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.style.fontSize = '120px';
+            createTone(1000, 200);
+            updateScore(15);
+            
+            // Create rainbow effect
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const rainbow = document.createElement('div');
+                    rainbow.textContent = '🌈';
+                    rainbow.className = 'particle';
+                    rainbow.style.left = (this.offsetLeft + Math.random() * 100) + 'px';
+                    rainbow.style.top = (this.offsetTop + Math.random() * 100) + 'px';
+                    rainbow.style.fontSize = '30px';
+                    
+                    document.getElementById('gameContainer').appendChild(rainbow);
+                    
+                    setTimeout(() => {
+                        rainbow.remove();
+                    }, 2000);
+                }, i * 50);
+            }
+            
+            setTimeout(() => {
+                this.style.fontSize = '80px';
+            }, 300);
+        });
+
+        // Game Loop - Create new elements
+        setInterval(createBubble, 2000);
+        setInterval(createAnimal, 3000);
+
+        // Initial elements
+        createBubble();
+        createBubble();
+        createAnimal();
+
+        // Prevent zoom on double tap
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        });
+
+        // Welcome message
+        console.log('🎮 Baby Touch Garden loaded! Touch anywhere to play!');
+    </script>
+</body>
+</html>
